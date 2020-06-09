@@ -80,8 +80,8 @@ def load_data(data_name):
         return [x_train, y_train]
 
     elif data_name == 'usps':
-        x_train = np.load('data/x_usps.npy')
-        y_train = np.load('data/y_usps.npy')
+        x_train = np.load('data/usps/x_usps.npy')
+        y_train = np.load('data/usps/y_usps.npy')
         x_train = (x_train + 1) / 2     #change the value to be between 0 to 1
         x_train = np.array(x_train)
         return [x_train, y_train]
