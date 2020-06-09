@@ -9,8 +9,8 @@ from keras.callbacks import ModelCheckpoint
 
 
 class KDae:
-    def __init__(self, number_cluster, k_dae_epoch=40, ae_initial_dim=(500, 500, 2000, 10), initial_epoch=3,
-                 ae_dim=(500, 100, 10), epoch_ae=30, batch_size=256):
+    def __init__(self, number_cluster, dataset_name='temp', k_dae_epoch=40, ae_initial_dim=(500, 500, 2000, 10),
+                 initial_epoch=3, ae_dim=(500, 100, 10), epoch_ae=30, batch_size=256):
         self.number_cluster = number_cluster
         self.k_dae_epoch = k_dae_epoch
         self.ae_initial_dim = ae_initial_dim
@@ -18,6 +18,7 @@ class KDae:
         self.ae_dim = ae_dim
         self.epoch_ae = epoch_ae
         self.batch_size = batch_size
+        self.dataset_name = dataset_name
         self.initial_ae = None
         self.initial_label = None
         self.ae_models_list = []
@@ -26,7 +27,8 @@ class KDae:
     def _initial_clustering(self, x_data):
         _, input_dim = x_data.shape
         logging.warning("input_dim", input_dim)
-        self.initial_ae = AutoEncoder(input_dim, self.ae_initial_dim, epoch=self.initial_epoch)
+        self.initial_ae = AutoEncoder(input_dim, self.ae_initial_dim, epoch=self.initial_epoch, save_model=True,
+                                      save_name=self.dataset_name)
         self.initial_ae.auto_encoder_model()
         embed = self.initial_ae.fit(x_data)
         k_means_initial_model = utils.k_means(embed, self.number_cluster)
@@ -63,7 +65,7 @@ class KDae:
             logging.info("Initial clustering results")
             _ = utils.cluster_performance(self.initial_label, y_data)
         for i in range(self.number_cluster):
-            logging.info("model number {}".format(i))
+            logging.info("model number {} create".format(i))
             self.ae_models_list.append(AutoEncoder(input_dim, self.ae_dim, epoch=self.epoch_ae, verbose=1))
             self.ae_models_list[i].auto_encoder_model()
             # train each ae with the initial clustering

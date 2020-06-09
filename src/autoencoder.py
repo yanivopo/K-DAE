@@ -7,7 +7,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 class AutoEncoder:
     def __init__(self, data_dim, hidden_dim, batch_normalize=True, epoch=100, batch_size=256, loss='binary_crossentropy',
-                 optimizer='ADAM', save_name='temp', verbose=1, save_model = False):
+                 optimizer='ADAM', save_name='temp', verbose=1, save_model=False):
         self.data_dim = data_dim
         self.hidden_dim = hidden_dim
         self.batch_normalize = batch_normalize
