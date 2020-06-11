@@ -33,14 +33,14 @@ class AutoEncoder:
             x = Dense(i, kernel_initializer=init, name='encoder_%d' % j)(x)
             if self.batch_normalize:
                 x = BatchNormalization()(x)
-            x = keras.layers.ReLU()(x)
+            x = keras.layers.ELU()(x)
         embedding_layer = Dense(self.hidden_dim[-1], kernel_initializer=init, name='embedding_layer')(x)
         x = embedding_layer
         for j, i in enumerate(self.hidden_dim[1::-1]):
             x = Dense(i, kernel_initializer=init, name='decode_%d' % j)(x)
             if self.batch_normalize:
                 x = BatchNormalization()(x)
-            x = keras.layers.ReLU()(x)  # ReLU,ELU
+            x = keras.layers.ELU()(x)  # ReLU,ELU
         x = Dense(self.data_dim, kernel_initializer=init, activation='sigmoid', name='decoder_0')(x)
         decode = x
         model = Model(inputs=inputs, outputs=decode)

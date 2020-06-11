@@ -3,8 +3,6 @@ from sklearn import metrics
 import numpy as np
 import logging
 import tensorflow as tf
-import pickle
-import gzip
 
 
 def acc(y_true, y_pred):

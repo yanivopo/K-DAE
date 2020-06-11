@@ -5,12 +5,30 @@ import numpy as np
 from keras.layers import Input, concatenate, Reshape
 from keras.models import Model
 import tensorflow as tf
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, Callback
+import os
+
+
+class ChangeCluster(Callback):
+    def __init__(self, k_dae, x_train, y_train, y_pred=None):
+        super(ChangeCluster, self).__init__()
+        self.k_dae = k_dae
+        self.y_pred = y_pred
+        self.x_train = x_train
+        self.y_train = y_train
+
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch % 5 == 0:
+            y_pred = self.k_dae.predict(self.x_train)
+            logging.info("Result after {} epochs".format(epoch))
+            utils.cluster_performance(y_pred, self.y_train)
+            #print("the number of not sample change ae is {} ".format(sum(y_auto_pred == self.y_pred)))
+            self.y_pred = y_pred
 
 
 class KDae:
     def __init__(self, number_cluster, dataset_name='temp', k_dae_epoch=40, ae_initial_dim=(500, 500, 2000, 10),
-                 initial_epoch=3, ae_dim=(500, 100, 10), epoch_ae=30, batch_size=256):
+                 initial_epoch=3, ae_dim=(500, 100, 10), epoch_ae=30, batch_size=256, save_dir='save'):
         self.number_cluster = number_cluster
         self.k_dae_epoch = k_dae_epoch
         self.ae_initial_dim = ae_initial_dim
@@ -19,6 +37,7 @@ class KDae:
         self.epoch_ae = epoch_ae
         self.batch_size = batch_size
         self.dataset_name = dataset_name
+        self.save_dir = save_dir
         self.initial_ae = None
         self.initial_label = None
         self.ae_models_list = []
@@ -27,8 +46,7 @@ class KDae:
     def _initial_clustering(self, x_data):
         _, input_dim = x_data.shape
         logging.warning("input_dim", input_dim)
-        self.initial_ae = AutoEncoder(input_dim, self.ae_initial_dim, epoch=self.initial_epoch, save_model=True,
-                                      save_name=self.dataset_name)
+        self.initial_ae = AutoEncoder(input_dim, self.ae_initial_dim, epoch=self.initial_epoch)
         self.initial_ae.auto_encoder_model()
         embed = self.initial_ae.fit(x_data)
         k_means_initial_model = utils.k_means(embed, self.number_cluster)
@@ -58,12 +76,23 @@ class KDae:
         min_value = tf.reduce_min(reconstruction_error, axis=-1, keepdims=True)
         return min_value
 
-    def fit(self, x_data, y_data=None, dataset_name='temp'):
+    def fit(self, x_data, y_data=None, dataset_name='temp', save_init_label=True, is_pre_train=True):
         input_size, input_dim = x_data.shape
-        self.initial_label = self._initial_clustering(x_data)
+        if is_pre_train:
+            try:
+                self.initial_label = np.load(os.path.join(self.save_dir, dataset_name, 'initial_cluster.npy'))
+            except FileNotFoundError as e:
+                logging.warning("initial clustering didn't find, start initial AE")
+                self.initial_label = self._initial_clustering(x_data)
+        else:
+            self.initial_label = self._initial_clustering(x_data)
         if y_data is not None:
             logging.info("Initial clustering results")
             _ = utils.cluster_performance(self.initial_label, y_data)
+        if save_init_label:
+            logging.info("Save the initial clustering")
+            np.save(os.path.join(self.save_dir, dataset_name, 'initial_cluster'), self.initial_label)
+
         for i in range(self.number_cluster):
             logging.info("model number {} create".format(i))
             self.ae_models_list.append(AutoEncoder(input_dim, self.ae_dim, epoch=self.epoch_ae, verbose=1))
@@ -75,11 +104,14 @@ class KDae:
             logging.info("Clustering result after each ae train separately")
             _ = utils.cluster_performance(y_predict, y_data)
         check = ModelCheckpoint('k_dae_' + dataset_name, monitor='loss', save_best_only=True)
+        cb = [check]
+        if y_data is not None:
+            cb.append(ChangeCluster(self, x_data, y_data))
         self.k_dae_model = self._create_combination_model(input_dim)
         self.k_dae_model.compile(optimizer='adam', loss=self.k_dae_loss)
         x_repeat = np.repeat(x_data[:, np.newaxis, :], self.number_cluster, axis=1)
         self.k_dae_model.fit(x_data, x_repeat, epochs=self.k_dae_epoch, batch_size=self.batch_size,
-                             callbacks=[check])
+                             callbacks=cb)
 
     def predict(self, x_data):
         reconstruction_norm = []
