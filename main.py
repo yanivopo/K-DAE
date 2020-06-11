@@ -34,8 +34,6 @@ if __name__ == '__main__':
     config_logger(log_path)
     logging.debug('Start running dataset name - {}'.format(dataset_name))
 
-    path_dir = Path(os.path.join(save_dir_name, dataset_name))
-    path_dir.mkdir(exist_ok=True)
     x_train, y_train = load_data(dataset_name)
     n_cluster = len(np.unique(y_train))
     model = KDae(number_cluster=n_cluster, k_dae_epoch=40, epoch_ae=10, initial_epoch=80, dataset_name=dataset_name)

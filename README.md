@@ -24,5 +24,5 @@ Yaniv Opochinsky, Shlomo E. Chazan, Sharon Gannot and Jacob Goldberger
 
 #### Optional Args: 
 
-* `----dataset_name` - The name of dataset [mnist / fashion / usps] default: mnist
+* `--dataset_name` - The name of dataset [mnist / fashion / usps] default: mnist
 * `--save_dir` - path to output folder. (contains logs and model.)
