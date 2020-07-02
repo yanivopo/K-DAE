@@ -29,7 +29,7 @@ if __name__ == '__main__':
     save_dir_name = FLAGS.save_dir
     dataset_name = FLAGS.dataset_name
     path_dir = Path(os.path.join(save_dir_name, dataset_name))
-    path_dir.mkdir(exist_ok=True)
+    path_dir.mkdir(parents=True, exist_ok=True)
     log_path = os.path.join(save_dir_name, dataset_name, 'k_dae.log')
     config_logger(log_path)
     logging.debug('Start running dataset name - {}'.format(dataset_name))
