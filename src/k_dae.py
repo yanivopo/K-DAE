@@ -45,7 +45,6 @@ class KDae:
 
     def _initial_clustering(self, x_data):
         _, input_dim = x_data.shape
-        logging.warning("input_dim", input_dim)
         self.initial_ae = AutoEncoder(input_dim, self.ae_initial_dim, epoch=self.initial_epoch)
         self.initial_ae.auto_encoder_model()
         embed = self.initial_ae.fit(x_data)

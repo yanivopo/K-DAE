@@ -70,7 +70,8 @@ class AutoEncoder:
 
 if __name__ == '__main__':
     pass
-#    x_train, y_train = aeTSNE_utils.load_data('mnist')
-#    ae = AutoEncoder(784, [500, 500, 2000, 10], epoch=1)
-#    ae.auto_encoder_model()
-#    embed = ae.fit(x_train)
+   # from src import utils
+   # x_train, y_train = utils.load_data('mnist')
+   # ae = AutoEncoder(784, [500, 500, 2000, 10], epoch=1)
+   # ae.auto_encoder_model()
+   # embed = ae.fit(x_train)
